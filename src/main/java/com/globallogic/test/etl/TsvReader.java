@@ -16,16 +16,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Etl { // TODO: take out headers to constants
+public class TsvReader { // TODO: take out headers to constants
     private static final Path PATH = Paths.get("src\\main\\resources\\etl_0.tsv");
-    private static final String SEPARATOR = "\t";
+    private static final String TSV_SEPARATOR = "\t";
     private static List<String> headers = new ArrayList<>(); // needed for set up headers order
     private static final Map<String, BiPredicate<String, String>> validators = new HashMap<>();
     private static final Map<String, BiConsumer<String, TsvItem>> setters = new HashMap<>();
 
-    public Etl() {
+    public TsvReader() {
         initValidators();
         initSetters();
     }
@@ -45,7 +46,7 @@ public class Etl { // TODO: take out headers to constants
                 Integer.parseInt(field);
                 return true;
             } catch (NumberFormatException e) {
-                System.err.printf("[WARN]: \"QUANTITY\" must be a digit %s in line: \n", line);
+                System.err.printf("[WARN]: \"QUANTITY\" must be a digit in line: %s\n", line);
                 return false;
             }
         });
@@ -70,21 +71,23 @@ public class Etl { // TODO: take out headers to constants
     void validateHeaders() {
         final Set<String> allowedHeaders = new HashSet<>(Arrays.asList("ID", "NAME", "QUANTITY", "DATE_CREATED"));
         try (Stream<String> lines = Files.lines(PATH, Charset.defaultCharset()).limit(1)) {
-            lines.flatMap(line -> Arrays.stream(line.split(SEPARATOR)))
-                    .forEach(header -> {
-                        if (!allowedHeaders.isEmpty()) {
-                            if (!allowedHeaders.remove(header)) {
-                                if (headers.contains(header)) {
-                                    throw new TsvValidationException(String.format("Duplicate header: %s", header));
-                                }
-                                throw new TsvValidationException(String.format("Header not allowed: %s", header));
-                            }
-                            headers.add(header);
-                        } else {
-                            throw new TsvValidationException(String.format("Incorrect headers count, expected %d",
-                                    headers.size()));
-                        }
-                    });
+            List<String> headers = lines.flatMap(line -> Arrays.stream(line.split(TSV_SEPARATOR)))
+                    .collect(Collectors.toList());
+
+            if (headers.size() != allowedHeaders.size()) {
+                throw new TsvValidationException(String.format("Expected %d headers but found: %d",
+                        allowedHeaders.size(), headers.size()));
+            }
+
+            headers.forEach(header -> {
+                if (!allowedHeaders.remove(header)) {
+                    if (TsvReader.headers.contains(header)) {
+                        throw new TsvValidationException(String.format("Duplicate header: %s", header));
+                    }
+                    throw new TsvValidationException(String.format("Header not allowed: %s", header));
+                }
+                TsvReader.headers.add(header);
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -101,10 +104,10 @@ public class Etl { // TODO: take out headers to constants
     }
 
     private void processLine(String line, List<TsvItem> items) {
-        String[] fields = line.split(SEPARATOR);
+        String[] fields = line.split(TSV_SEPARATOR);
         if (fields.length != headers.size()) {
-            throw new TsvValidationException(String.format("Incorrect count of items: expected %d, actual %d",
-                    headers.size(), fields.length));
+            throw new TsvValidationException(String.format("Expected %d items but found %d. Line: %s",
+                    headers.size(), fields.length, line));
         }
 
         int validFields = 0;

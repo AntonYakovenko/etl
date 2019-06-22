@@ -22,7 +22,7 @@ jar {
 
 dependencies {
     compile "org.codehaus.groovy:groovy-all:2.5.7"
-//    compile "org.mongodb:mongo-java-driver:3.10.2"
+    compile "org.mongodb:mongo-java-driver:3.10.2"
 
     testCompile "junit:junit:4.12"
     testCompile "org.hamcrest:hamcrest-core:1.3"
