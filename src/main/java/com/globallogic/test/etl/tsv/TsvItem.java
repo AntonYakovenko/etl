@@ -1,6 +1,7 @@
-package com.globallogic.test.etl;
+package com.globallogic.test.etl.tsv;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 public class TsvItem {
     private String id;
@@ -48,6 +49,22 @@ public class TsvItem {
 
     public void setDateCreated(LocalDate dateCreated) {
         this.dateCreated = dateCreated;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TsvItem)) return false;
+        TsvItem tsvItem = (TsvItem) o;
+        return Objects.equals(id, tsvItem.id) &&
+                Objects.equals(name, tsvItem.name) &&
+                Objects.equals(quantity, tsvItem.quantity) &&
+                Objects.equals(dateCreated, tsvItem.dateCreated);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, quantity, dateCreated);
     }
 
     @Override

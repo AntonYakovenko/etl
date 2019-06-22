@@ -2,7 +2,7 @@ package com.globallogic.test.etl
 
 import spock.lang.Specification
 
-class Test extends Specification {
+class TestApp extends Specification {
 
     def "simple test"() {
         given:

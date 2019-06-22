@@ -1,4 +1,4 @@
-package com.globallogic.test.etl;
+package com.globallogic.test.etl.tsv;
 
 public class TsvValidationException extends RuntimeException {
 
