@@ -33,11 +33,12 @@ public class TsvProcessorImpl implements TsvProcessor {
     private static final String QUANTITY = "QUANTITY";
     private static final String DATE_CREATED = "DATE_CREATED";
 
-    private final List<String> headers = new ArrayList<>(); // needed for set up headers order
-    private final Map<String, BiPredicate<String, String>> validators = new HashMap<>();
-    private final Map<String, BiConsumer<String, TsvItem>> setters = new HashMap<>();
-    private final ExecutorService executor = Executors.newFixedThreadPool(5);
-    private final TsvItemRepository repository;
+    // package private access for tests
+    final List<String> headers = new ArrayList<>(); // needed for set up headers order
+    final Map<String, BiPredicate<String, String>> validators = new HashMap<>();
+    final Map<String, BiConsumer<String, TsvItem>> setters = new HashMap<>();
+    final ExecutorService executor = Executors.newFixedThreadPool(5);
+    final TsvItemRepository repository;
 
     public TsvProcessorImpl(TsvItemRepository repository) {
         initValidators();
