@@ -26,6 +26,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * ETL implementation
+ */
 public class TsvProcessorImpl implements TsvProcessor {
     private static final String TSV_SEPARATOR = "\t";
     private static final String ID = "ID";
@@ -114,6 +117,14 @@ public class TsvProcessorImpl implements TsvProcessor {
         }
     }
 
+    /**
+     * Main method for ETL. Using methods {@link TsvProcessorImpl#processHeaders(Path)} and
+     * {@link TsvProcessorImpl#processLine(String, Predicate)} provides data migration from the file
+     * to the database. Invalid lines of .tsv file are skipped
+     *
+     * @param path      the path to source file
+     * @param predicate the predicate to filter items to save to the database
+     */
     void migrate(Path path, Predicate<? super TsvItem> predicate) {
         processHeaders(path);
         try (Stream<String> lines = Files.lines(path, Charset.defaultCharset()).skip(1)) {
@@ -130,6 +141,12 @@ public class TsvProcessorImpl implements TsvProcessor {
         }
     }
 
+    /**
+     * Reads and validates headers from .tsv file and sets up headers order in the field <tt>headers</tt>
+     *
+     * @param path the path to source file
+     * @throws TsvValidationException if headers or their count are invalid
+     */
     void processHeaders(Path path) {
         final Set<String> allowedHeaders = new HashSet<>(Arrays.asList(ID, NAME, QUANTITY, DATE_CREATED));
         try (Stream<String> lines = Files.lines(path, Charset.defaultCharset()).limit(1)) {
@@ -155,11 +172,18 @@ public class TsvProcessorImpl implements TsvProcessor {
         }
     }
 
+    /**
+     * Reads and validate the line of data from .tsv file. If the line is valid and matches predicate -
+     * saves it to the database, else skips
+     *
+     * @param line      the line of the file to process
+     * @param predicate the predicate to filter items to save to the database
+     */
     void processLine(String line, Predicate<? super TsvItem> predicate) {
         final String[] fields = line.split(TSV_SEPARATOR);
         if (fields.length != headers.size()) {
-            throw new TsvValidationException(String.format("ERROR: Expected %d items but found %d. Line: %s",
-                    headers.size(), fields.length, line));
+            System.err.printf("WARN: Expected %d items in the line but found %d. Skipping the line: %s",
+                    headers.size(), fields.length, line);
         }
 
         int validFields = 0;

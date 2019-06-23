@@ -15,6 +15,9 @@ import java.util.stream.StreamSupport;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
+/**
+ * Repository for mongo collection "tsvItems"
+ */
 public class MongoTsvItemRepository implements TsvItemRepository {
     private static final String TSV_ITEMS = "tsvItems";
     private final MongoDatabase db;

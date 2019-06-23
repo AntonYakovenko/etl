@@ -77,15 +77,4 @@ class TsvProcessorTest extends Specification {
         then:
         noExceptionThrown()
     }
-
-    def "invalid fields count in line"() {
-        given:
-        processor.headers.addAll(["ID", "NAME", "QUANTITY", "DATE_CREATED"])
-        String line = "1\titem_1\t1\t2019-06-23\tredundant field"
-        when:
-        processor.processLine(line, { true })
-        then:
-        def ex = thrown(TsvValidationException)
-        ex.message.matches("ERROR: Expected 4 items but found \\d+\\. Line: .*")
-    }
 }
