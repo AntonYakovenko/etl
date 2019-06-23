@@ -2,10 +2,9 @@ package com.globallogic.test.etl.db;
 
 import com.globallogic.test.etl.tsv.TsvItem;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoWriteException;
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.InsertOneOptions;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -16,13 +15,12 @@ import java.util.stream.StreamSupport;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
-public class TsvItemRepositoryImpl implements TsvItemRepository {
-
+public class MongoTsvItemRepository implements TsvItemRepository {
     private static final String TSV_ITEMS = "tsvItems";
     private final MongoDatabase db;
     private final MongoCollection<TsvItem> collection;
 
-    public TsvItemRepositoryImpl(MongoDatabase db) {
+    public MongoTsvItemRepository(MongoDatabase db) {
         this.db = db;
         this.collection = initCollection();
     }
@@ -45,11 +43,10 @@ public class TsvItemRepositoryImpl implements TsvItemRepository {
     @Override
     public void save(TsvItem item) {
         try {
-            new InsertOneOptions();
             collection.insertOne(item);
-        } catch (MongoWriteException ex) {
-            System.err.printf("[ERROR]: Error while inserting document with ID = %s: %s\n",
-                    item.getId(), ex.getError().getMessage());
+        } catch (MongoException ex) {
+            System.err.printf("ERROR: Error while inserting document with ID = %s: %s\n",
+                    item.getId(), ex.getMessage());
         }
     }
 

@@ -49,7 +49,7 @@ public class TsvProcessorImpl implements TsvProcessor {
         validators.put(ID, (field, line) -> true); // no validation
         validators.put(NAME, (field, line) -> {
             if (field.length() > 50) {
-                System.err.printf("[WARN]: \"%s\" must be less than 50 in line: %s\n", NAME, line);
+                System.err.printf("WARN: \"%s\" must be less than 50. Skipping the line: %s\n", NAME, line);
                 return false;
             } else {
                 return true;
@@ -60,7 +60,7 @@ public class TsvProcessorImpl implements TsvProcessor {
                 Integer.parseInt(field);
                 return true;
             } catch (NumberFormatException e) {
-                System.err.printf("[WARN]: \"%s\" must be a digit in line: %s\n", QUANTITY, line);
+                System.err.printf("WARN: \"%s\" must be a digit. Skipping the line: %s\n", QUANTITY, line);
                 return false;
             }
         });
@@ -69,7 +69,8 @@ public class TsvProcessorImpl implements TsvProcessor {
                 LocalDate.parse(field);
                 return true;
             } catch (DateTimeParseException e) {
-                System.err.printf("[WARN]: \"%s\" must be in format \"yyyy-MM-dd\" in line: %s\n", DATE_CREATED, line);
+                System.err.printf("WARN: \"%s\" must be in format \"yyyy-MM-dd\". Skipping the line: %s\n",
+                        DATE_CREATED, line);
                 return false;
             }
         });
@@ -84,17 +85,18 @@ public class TsvProcessorImpl implements TsvProcessor {
 
     @Override
     public void migrate(String path) {
-        migrate(Paths.get(path), item -> true);
+        migrate(path, item -> true);
     }
 
     @Override
     public void migrate(String path, Predicate<? super TsvItem> predicate) {
+        validateFilePath(path);
         migrate(Paths.get(path), predicate);
     }
 
     @Override
     public void migrate(URI uri) {
-        migrate(Paths.get(uri), item -> true);
+        migrate(uri, item -> true);
     }
 
     @Override
@@ -102,8 +104,17 @@ public class TsvProcessorImpl implements TsvProcessor {
         migrate(Paths.get(uri), predicate);
     }
 
-    private void migrate(Path path, Predicate<? super TsvItem> predicate) {
-        validateHeaders(path);
+    void validateFilePath(String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("Null path");
+        }
+        if (!path.endsWith(".tsv") && !path.endsWith(".tab")) {
+            throw new IllegalArgumentException("Only .tsv and .tab extensions allowed");
+        }
+    }
+
+    void migrate(Path path, Predicate<? super TsvItem> predicate) {
+        processHeaders(path);
         try (Stream<String> lines = Files.lines(path, Charset.defaultCharset()).skip(1)) {
             lines.forEach(line -> processLine(line, predicate));
         } catch (IOException e) {
@@ -118,23 +129,23 @@ public class TsvProcessorImpl implements TsvProcessor {
         }
     }
 
-    private void validateHeaders(Path path) {
+    void processHeaders(Path path) {
         final Set<String> allowedHeaders = new HashSet<>(Arrays.asList(ID, NAME, QUANTITY, DATE_CREATED));
         try (Stream<String> lines = Files.lines(path, Charset.defaultCharset()).limit(1)) {
             final List<String> tsvHeaders = lines.flatMap(line -> Arrays.stream(line.split(TSV_SEPARATOR)))
                     .collect(Collectors.toList());
 
             if (tsvHeaders.size() != allowedHeaders.size()) {
-                throw new TsvValidationException(String.format("[ERROR]: Expected %d headers but found: %d",
+                throw new TsvValidationException(String.format("ERROR: Expected %d headers but found: %d",
                         allowedHeaders.size(), tsvHeaders.size()));
             }
 
             tsvHeaders.forEach(header -> {
                 if (!allowedHeaders.remove(header)) {
                     if (headers.contains(header)) {
-                        throw new TsvValidationException(String.format("[ERROR]: Duplicate header: %s", header));
+                        throw new TsvValidationException(String.format("ERROR: Duplicate header: %s", header));
                     }
-                    throw new TsvValidationException(String.format("[ERROR]: Header not allowed: %s", header));
+                    throw new TsvValidationException(String.format("ERROR: Header not allowed: %s", header));
                 }
                 headers.add(header);
             });
@@ -143,10 +154,10 @@ public class TsvProcessorImpl implements TsvProcessor {
         }
     }
 
-    private void processLine(String line, Predicate<? super TsvItem> predicate) {
+    void processLine(String line, Predicate<? super TsvItem> predicate) {
         final String[] fields = line.split(TSV_SEPARATOR);
         if (fields.length != headers.size()) {
-            throw new TsvValidationException(String.format("[ERROR]: Expected %d items but found %d. Line: %s",
+            throw new TsvValidationException(String.format("ERROR: Expected %d items but found %d. Line: %s",
                     headers.size(), fields.length, line));
         }
 
@@ -162,7 +173,7 @@ public class TsvProcessorImpl implements TsvProcessor {
         }
 
         if (validFields == headers.size() && predicate.test(item)) {
-            executor.submit(() -> repository.save(item));
+            executor.submit(() -> repository.save(item)); // speeds up bulk file processing
         }
     }
 }
