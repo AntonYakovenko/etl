@@ -61,7 +61,7 @@ public class MongoTsvItemRepository implements TsvItemRepository {
 
     private boolean collectionExists(MongoDatabase db) {
         return StreamSupport.stream(db.listCollectionNames().spliterator(), false)
-                .anyMatch(TSV_ITEMS::equals);
+                .anyMatch(TSV_ITEMS::equalsIgnoreCase);
     }
 
     private CodecRegistry getTsvItemCodecRegistry() {

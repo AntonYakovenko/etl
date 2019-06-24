@@ -13,13 +13,33 @@ This repository contains ETL implementation on Java to migrate data from TSF (ta
    name|default|mandatory|description
    ----|-------|----|---
    MONGODB_URI|mongodb://localhost:27017|N|MongoDB connection string
-   SOURCE_FILE_PATH|src\main\resources\etl_0.tsv|N|Path to the source file
+   SOURCE_FILE_PATH|src/main/resources/etl_0.tsv|N|Path to the source file
 
 ## Building info
-Open bash shell <br/>
-To build an executable jar, run `gradlew clean build` from the project root<br/>
-`cd build/libs`<br/>
-`java -jar $(ls)`
+Create mongo database container using docker
+<pre>
+sudo docker run -d --name mongo -p 27017:27017 mongo:4.0
+</pre>
+or using docker-compose
+<pre>
+sudo docker-compose up -d
+</pre>
+Check the database is successfully running
+<pre>
+sudo lsof -i :27017
+</pre>
+Give executable permission to gradlew script
+<pre>
+sudo chmod +x gradlew
+</pre>
+Build an executable jar
+<pre>
+./gradlew clean build
+</pre>
+Run jar
+<pre>
+java -jar build/libs/*.jar
+</pre>
 
 ## Testing info
 Implementation is covered by unit tests for source file data validation and database repository interface operations<br/>

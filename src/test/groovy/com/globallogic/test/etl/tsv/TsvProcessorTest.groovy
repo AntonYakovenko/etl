@@ -20,7 +20,7 @@ class TsvProcessorTest extends Specification {
 
     def "invalid file extension"() {
         given:
-        String path = "src\\test\\resources\\extension_invalid.txt"
+        String path = "src/test/resources/extension_invalid.txt"
         when:
         processor.validateFilePath(path)
         then:
@@ -30,7 +30,7 @@ class TsvProcessorTest extends Specification {
 
     def "headers valid"() {
         given:
-        Path path = Paths.get("src\\test\\resources\\headers_valid.tsv")
+        Path path = Paths.get("src/test/resources/headers_valid.tsv")
         when:
         processor.processHeaders(path)
         then:
@@ -40,7 +40,7 @@ class TsvProcessorTest extends Specification {
 
     def "invalid headers count"() {
         given:
-        Path path = Paths.get("src\\test\\resources\\headers_count_invalid.tsv")
+        Path path = Paths.get("src/test/resources/headers_count_invalid.tsv")
         when:
         processor.processHeaders(path)
         then:
@@ -50,7 +50,7 @@ class TsvProcessorTest extends Specification {
 
     def "invalid headers name"() {
         given:
-        Path path = Paths.get("src\\test\\resources\\headers_name_invalid.tsv")
+        Path path = Paths.get("src/test/resources/headers_name_invalid.tsv")
         when:
         processor.processHeaders(path)
         then:
@@ -60,7 +60,7 @@ class TsvProcessorTest extends Specification {
 
     def "duplicate headers"() {
         given:
-        Path path = Paths.get("src\\test\\resources\\headers_duplicated.tsv")
+        Path path = Paths.get("src/test/resources/headers_duplicated.tsv")
         when:
         processor.processHeaders(path)
         then:
